@@ -8,27 +8,27 @@
 
   // Canonical map to the files that actually exist in the repository.
   const THEME_MAP = {
-    "theme-1": { display_name: "التصميم 1", theme_js: 'app/themes/theme-1.js' },
-    "theme-2": { display_name: "التصميم الأخضر", theme_js: 'app/themes/theme-2.js' },
-    "theme-3": { display_name: "التصميم الإبداعي", theme_js: 'app/themes/theme-3.js' },
-    "theme-4": { display_name: "التصميم التحريري", theme_js: 'app/themes/theme-4.js' },
-    "theme-5": { display_name: "الرمادي المصقول والكهرماني", theme_js: 'app/themes/theme-5.js' },
-    "theme-6": { display_name: "الأزرق الملكي والذهبي", theme_js: 'app/themes/theme-6.js' },
-    "theme-7": { display_name: "دراسة الزمرد", theme_js: 'app/themes/theme-7.js' },
-    "theme-8": { display_name: "العنابي الملكي والشمبانيا", theme_js: 'app/themes/theme-8.js' },
-    "theme-baby-blue": { display_name: "الأزرق الفاتح", theme_js: 'app/themes/theme-baby-blue.js' },
-    "theme-aurora-glass": { display_name: "زجاج الشفق", theme_js: 'app/themes/theme-aurora-glass.js' },
-    "theme-warda-pink": { display_name: "الوردي الورد", theme_js: 'app/themes/theme-warda-pink.js' },
-    "theme-legend-pink": { display_name: "الوردي الأسطوري", theme_js: 'app/themes/theme-legend-pink.js' },
-    "theme-legend-babyblue": { display_name: "بيبي بلو الأسطوري", theme_js: 'app/themes/theme-legend-babyblue.js' },
-    "theme-legend-night": { display_name: "الليل الساحر", theme_js: 'app/themes/theme-legend-night.js' },
-    "theme-pop-pink": { display_name: "وردي بابلجم", theme_js: 'app/themes/theme-pop-pink.js' },
-    "theme-frost-blue": { display_name: "الجليدي", theme_js: 'app/themes/theme-frost-blue.js' },
-    "theme-galaxy": { display_name: "المجرة", theme_js: 'app/themes/theme-galaxy.js' },
-    "theme-forest": { display_name: "الغابة الساحرة", theme_js: 'app/themes/theme-forest.js' },
-    'theme-emerald': { display_name: 'التصميم الأخضر', theme_js: 'app/themes/theme-2.js' },
-    'theme-editorial': { display_name: 'التصميم التحريري', theme_js: 'app/themes/theme-4.js' },
-    'theme-saas': { display_name: 'التصميم الإبداعي', theme_js: 'app/themes/theme-3.js' },
+    "theme-1": { display_name: "التصميم 1", theme_js: './themes/theme-1.js' },
+    "theme-2": { display_name: "التصميم الأخضر", theme_js: './themes/theme-2.js' },
+    "theme-3": { display_name: "التصميم الإبداعي", theme_js: './themes/theme-3.js' },
+    "theme-4": { display_name: "التصميم التحريري", theme_js: './themes/theme-4.js' },
+    "theme-5": { display_name: "الرمادي المصقول والكهرماني", theme_js: './themes/theme-5.js' },
+    "theme-6": { display_name: "الأزرق الملكي والذهبي", theme_js: './themes/theme-6.js' },
+    "theme-7": { display_name: "دراسة الزمرد", theme_js: './themes/theme-7.js' },
+    "theme-8": { display_name: "العنابي الملكي والشمبانيا", theme_js: './themes/theme-8.js' },
+    "theme-baby-blue": { display_name: "الأزرق الفاتح", theme_js: './themes/theme-baby-blue.js' },
+    "theme-aurora-glass": { display_name: "زجاج الشفق", theme_js: './themes/theme-aurora-glass.js' },
+    "theme-warda-pink": { display_name: "الوردي الورد", theme_js: './themes/theme-warda-pink.js' },
+    "theme-legend-pink": { display_name: "الوردي الأسطوري", theme_js: './themes/theme-legend-pink.js' },
+    "theme-legend-babyblue": { display_name: "بيبي بلو الأسطوري", theme_js: './themes/theme-legend-babyblue.js' },
+    "theme-legend-night": { display_name: "الليل الساحر", theme_js: './themes/theme-legend-night.js' },
+    "theme-pop-pink": { display_name: "وردي بابلجم", theme_js: './themes/theme-pop-pink.js' },
+    "theme-frost-blue": { display_name: "الجليدي", theme_js: './themes/theme-frost-blue.js' },
+    "theme-galaxy": { display_name: "المجرة", theme_js: './themes/theme-galaxy.js' },
+    "theme-forest": { display_name: "الغابة الساحرة", theme_js: './themes/theme-forest.js' },
+    'theme-emerald': { display_name: 'التصميم الأخضر', theme_js: './themes/theme-2.js' },
+    'theme-editorial': { display_name: 'التصميم التحريري', theme_js: './themes/theme-4.js' },
+    'theme-saas': { display_name: 'التصميم الإبداعي', theme_js: './themes/theme-3.js' },
   };
 
   const state = { themes: [], user: null, profile: null, isAdmin: false, userThemeButtonEnabled: false };
@@ -41,7 +41,7 @@
     const key = canonicalKey(String(t?.theme_key || '').trim());
     const map = THEME_MAP[key];
     if (map) return map;
-    return { display_name: t?.display_name || key || 'سمة', theme_js: 'app/themes/theme-1.js' };
+    return { display_name: t?.display_name || key || 'سمة', theme_js: './themes/theme-1.js' };
   }
 
   function displayName(t) {
@@ -66,7 +66,7 @@
   function normalizeThemeRow(row) {
     const key = canonicalKey(String(row?.theme_key || '').trim());
     const def = THEME_MAP[key];
-    return { ...row, theme_key: key, theme_js: def?.theme_js || row?.theme_js || 'app/themes/theme-1.js' };
+    return { ...row, theme_key: key, theme_js: def?.theme_js || row?.theme_js || './themes/theme-1.js' };
   }
 
   const toast = (msg, ok = true) => {
@@ -119,7 +119,7 @@
     window.MIDAD_THEME_DEFINITIONS = window.MIDAD_THEME_DEFINITIONS || {};
     if (window.MIDAD_THEME_DEFINITIONS[key]) return window.MIDAD_THEME_DEFINITIONS[key];
     const map = THEME_MAP[key] || THEME_MAP['theme-1'];
-    const src = new URL(map.theme_js || 'app/themes/theme-1.js', document.baseURI).href;
+    const src = new URL(map.theme_js || './themes/theme-1.js', document.baseURI).href;
     await new Promise((resolve, reject) => {
       const script = document.createElement('script');
       script.src = src; script.async = true;

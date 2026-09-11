@@ -1,11 +1,11 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-    <base href="../">
+    <base href="./">
     <!-- MIDAD PWA: cross-browser home-screen support -->
-    <link rel="manifest" href="manifest.webmanifest">
-    <link rel="icon" type="image/png" href="1.png">
-    <link rel="apple-touch-icon" href="1.png">
+    <link rel="manifest" href="../manifest.webmanifest">
+    <link rel="icon" type="image/png" href="../1.png">
+    <link rel="apple-touch-icon" href="../1.png">
     <meta name="application-name" content="IN THE VOID">
     <meta name="apple-mobile-web-app-title" content="IN THE VOID">
     <meta name="mobile-web-app-capable" content="yes">
@@ -851,7 +851,7 @@
                     ${isRealAdmin() ? (state.viewAsMember
                       ? `<button class="profile-page-btn" data-act="exit-view-as-member"><i class="fas fa-right-from-bracket"></i> الرجوع لوضع الأدمن</button>`
                       : `<button class="profile-page-btn" data-act="enter-view-as-member"><i class="fas fa-eye"></i> المشاهدة (معاينة كعضو)</button>`) : ''}
-                    ${isAdmin() ? `<button class="profile-page-btn profile-video-library-btn" data-act="open-video-library" title="إدارة فيديوهات الترحيب"><i class="fas fa-film"></i> إدارة الفيديوهات</button>` : ''} ${isAdmin() ? `<button class="profile-page-btn profile-video-library-btn" data-act="open-admin-manager" title="فتح لوحة إدارة الأعضاء" onclick="location.href='admin-manager.html'"><i class="fas fa-screwdriver-wrench"></i> إدارة الأعضاء</button>` : ''}
+                    ${isAdmin() ? `<button class="profile-page-btn profile-video-library-btn" data-act="open-video-library" title="إدارة فيديوهات الترحيب"><i class="fas fa-film"></i> إدارة الفيديوهات</button>` : ''} ${isAdmin() ? `<button class="profile-page-btn profile-video-library-btn" data-act="open-admin-manager" title="فتح لوحة إدارة الأعضاء" onclick="location.href='../admin-manager.html'"><i class="fas fa-screwdriver-wrench"></i> إدارة الأعضاء</button>` : ''}
                     <button class="profile-page-btn danger" data-act="logout"><i class="fas fa-sign-out-alt"></i> تسجيل خروج</button>
                   </div>
                 </div>
@@ -2481,7 +2481,7 @@
 
 
                 case 'open-video-library': {
-                     location.href = new URL('admin-videos.html', document.baseURI).href;
+                     location.href = new URL('../admin-videos.html', document.baseURI).href;
                      break;
                  }
 
@@ -3127,10 +3127,10 @@ async function listWelcomeVideoObjects(path=''){
         console.log('📂 الأقسام:', state.sections.length);
     </script>
 <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
-<script src="midad-round5.js"></script>
+<script src="../midad-round5.js"></script>
 <script>bootApp();</script>
-<script src="app/theme-common.js"></script>
-<script src="app/theme-system.js"></script>
+<script src="theme-common.js"></script>
+<script src="theme-system.js"></script>
 </body>
 </html>
 

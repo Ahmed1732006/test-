@@ -95,6 +95,28 @@ alter table public.platform_buttons
   add constraint platform_buttons_audience_mode_check
   check (audience_mode in ('all','members','moderators','admins','selected'));
 
+
+-- Backfill for installations that created platform_buttons before placement/device controls.
+alter table public.platform_buttons
+  add column if not exists placement text not null default 'outside';
+
+alter table public.platform_buttons
+  add column if not exists device_mode text not null default 'both';
+
+alter table public.platform_buttons
+  drop constraint if exists platform_buttons_placement_check;
+
+alter table public.platform_buttons
+  add constraint platform_buttons_placement_check
+  check (placement in ('outside','manager','both'));
+
+alter table public.platform_buttons
+  drop constraint if exists platform_buttons_device_mode_check;
+
+alter table public.platform_buttons
+  add constraint platform_buttons_device_mode_check
+  check (device_mode in ('both','mobile','desktop'));
+
 -- Public images are stored separately so GIF/WebP/etc. can display directly.
 insert into storage.buckets (id, name, public)
 values ('platform-buttons','platform-buttons',true)

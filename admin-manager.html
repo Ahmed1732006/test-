@@ -1,0 +1,485 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>IN THE VOID — إدارة الأعضاء</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#f5f7fb;color:#172033;font-family:Arial,Tahoma,sans-serif}
+.wrap{max-width:1150px;margin:auto;padding:18px}.card{background:#fff;border:1px solid #e7eaf0;border-radius:22px;padding:18px;box-shadow:0 12px 35px #10182812;margin-bottom:16px}
+.top{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}h1{margin:0 0 6px;font-size:26px}h2{margin:0 0 12px;font-size:20px}
+.sub,.muted{color:#667085;line-height:1.7}.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}.stat{padding:15px;border:1px solid #e6e8ee;border-radius:16px;background:#fafbfc}.stat b{display:block;font-size:24px;margin-top:5px}
+.controls{display:grid;grid-template-columns:2fr 1fr 1fr auto;gap:10px;margin:14px 0}
+input,select,textarea,button{font:inherit}input,select,textarea{width:100%;border:1px solid #d7dce5;border-radius:12px;padding:12px;background:#fff;outline:none}textarea{min-height:125px;resize:vertical}
+button{border:0;border-radius:12px;padding:11px 15px;background:#2563eb;color:#fff;font-weight:800;cursor:pointer}button:disabled{opacity:.55;cursor:not-allowed}
+.btn-gray{background:#eef2f6;color:#344054}.btn-red{background:#dc2626}.btn-green{background:#059669}.btn-purple{background:#7c3aed}.btn-gold{background:#b88900}.btn-cyan{background:#0891b2}
+.hidden{display:none!important}.status{padding:12px;border-radius:12px;margin-top:12px;display:none;line-height:1.6}.ok{display:block;background:#ecfdf3;color:#067647}.err{display:block;background:#fef3f2;color:#b42318}
+.user{border:1px solid #e5e7eb;border-radius:18px;padding:15px;margin-top:12px}.userhead{display:flex;align-items:center;gap:13px}
+.avatar{width:64px;height:64px;border-radius:50%;object-fit:cover;background:#eef2ff;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:21px;flex:0 0 auto;border:2px solid #fff;box-shadow:0 8px 20px #0001}
+.name{font-size:18px;font-weight:900}.email{color:#667085;font-size:14px;word-break:break-all}.meta{color:#667085;font-size:13px;margin-top:5px}
+.badges,.actions,.chips{display:flex;gap:7px;flex-wrap:wrap}.badges{margin-top:7px}.badge,.chip{display:inline-block;padding:5px 9px;border-radius:999px;background:#f1f5f9;font-size:12px;font-weight:800}.badge.admin{background:#fff4cc;color:#8a5a00}.badge.mod{background:#ede9fe;color:#5b21b6}.badge.off{background:#fee2e2;color:#991b1b}
+.actions{margin-top:13px}.actions button{padding:9px 11px;font-size:13px}.details{display:none;margin-top:14px;padding-top:14px;border-top:1px solid #edf0f4}.details.open{display:block}
+.formgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.field{margin-top:10px}.field label{display:block;font-weight:800;margin-bottom:6px}.small{font-size:12px;color:#667085;line-height:1.6}
+.avatar-edit{display:flex;gap:12px;align-items:center;flex-wrap:wrap}.avatar-preview{width:86px;height:86px;border-radius:50%;object-fit:cover;background:#eef2ff;border:2px solid #fff;box-shadow:0 8px 22px #0001}
+.file-label{display:inline-flex;align-items:center;gap:7px;padding:10px 13px;border-radius:12px;background:#eef2ff;color:#334155;font-weight:800;cursor:pointer}.file-label input{display:none}
+.title-grid{display:flex;flex-wrap:wrap;gap:7px}.title-option{background:#f8fafc;color:#334155;border:1px solid #e2e8f0;padding:8px 10px}.title-option.active{background:#dbeafe;color:#1d4ed8;border-color:#93c5fd}.selected-title{background:#fff7ed;color:#9a3412}
+.theme-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:9px}.theme-grid label{border:1px solid #e5e7eb;padding:10px;border-radius:12px;display:flex;gap:7px;align-items:center;font-weight:700;background:#fafafa}.theme-grid input{width:auto}
+.modal-back{position:fixed;inset:0;background:#0008;z-index:9999;display:flex;align-items:center;justify-content:center;padding:14px}.modal{background:#fff;border-radius:22px;max-width:680px;width:100%;max-height:92vh;overflow:auto;padding:20px}.modal-head{display:flex;justify-content:space-between;align-items:center;gap:10px}.close{width:auto;background:#eef2f6;color:#344054}
+.media-preview{margin-top:10px;max-width:100%;border-radius:15px;background:#0b1220;overflow:hidden}.media-preview img,.media-preview video{width:100%;max-height:300px;object-fit:contain;display:block}
+.login{max-width:520px;margin:70px auto}.danger-note{background:#fff7ed;border:1px solid #fed7aa;padding:11px;border-radius:12px;color:#9a3412;font-size:13px;line-height:1.6}
+@media(max-width:800px){.grid{grid-template-columns:1fr 1fr}.controls{grid-template-columns:1fr 1fr}.theme-grid{grid-template-columns:1fr 1fr}}
+@media(max-width:520px){.grid,.formgrid,.controls,.theme-grid{grid-template-columns:1fr}.wrap{padding:10px}}
+</style>
+</head>
+<body>
+
+<div id="loginView" class="wrap login">
+<div class="card">
+<h1>🛡️ إدارة الأعضاء — IN THE VOID</h1>
+<p class="sub">لوحة مستقلة للإدارة فقط. لا يوجد هنا أي نظام فيديو ترحيب.</p>
+<label>الإيميل</label><input id="email" type="email" autocomplete="username">
+<label style="display:block;margin-top:10px">كلمة السر</label><input id="password" type="password" autocomplete="current-password">
+<button id="loginBtn" style="width:100%;margin-top:12px" onclick="login()">دخول</button>
+<div id="loginStatus" class="status"></div>
+</div></div>
+
+<div id="appView" class="wrap hidden">
+<div class="card"><div class="top"><div><h1>👥 إدارة المستخدمين</h1><div class="sub">كل أدوات الإدارة في مكان واحد.</div></div><button class="btn-gray" onclick="logout()">خروج</button></div><div class="grid" id="stats"></div></div>
+
+<div class="card">
+<div class="top" style="margin-bottom:10px">
+<h2 style="margin:0">🔎 المستخدمون</h2>
+<div class="actions" style="margin:0">
+<button class="btn-green" onclick="openInstantAccount()">⚡ حساب فوري</button>
+<button class="btn-purple" onclick="openTemporaryAccount()">⏳ حساب مؤقت</button>
+</div>
+</div>
+<div class="controls">
+<input id="search" placeholder="ابحث بالاسم أو البريد أو الهاتف..." oninput="renderUsers()">
+<select id="roleFilter" onchange="renderUsers()"><option value="">كل الصلاحيات</option><option value="member">عضو</option><option value="moderator">مشرف</option><option value="admin">أدمن</option></select>
+<select id="statusFilter" onchange="renderUsers()"><option value="">كل الحالات</option><option value="approved">مقبول</option><option value="pending">معلق</option><option value="revoked">مرفوض/موقوف</option><option value="temporary">مؤقت</option></select>
+<button onclick="loadUsers()">🔄 تحديث</button>
+</div><div id="users"></div><div id="mainStatus" class="status"></div>
+</div>
+
+<div class="card">
+<h2>💬 إرسال رسالة</h2>
+<div class="sub">يستخدم نفس جدول <b>user_messages</b> ونفس Storage bucket <b>admin-messages</b> الموجودين في موقعك. تقدر تبعت نص + صورة/GIF + فيديو، وتُحفظ فواصل الأسطر بشكل صحيح.</div>
+<div class="formgrid">
+<div><label>المستلم</label><select id="messageUser" onchange="syncMessageTarget()"><option value="all">📢 جميع الحسابات</option></select></div>
+<div><label>عدد مرات الظهور</label><select id="messageViews"><option value="1">مرة واحدة</option><option value="2">مرتين</option><option value="3">3 مرات</option><option value="5">5 مرات</option><option value="10">10 مرات</option><option value="20">20 مرة</option><option value="unlimited">بدون حد</option></select></div>
+</div>
+<div class="field"><label>عنوان الرسالة</label><input id="messageTitle" maxlength="120" placeholder="مثال: تنبيه من الإدارة"></div>
+<div class="field"><label>نص الرسالة</label><textarea id="messageBody" maxlength="5000" placeholder="اكتب الرسالة هنا..."></textarea></div>
+<div class="field"><label>صورة أو فيديو</label><input id="messageMedia" type="file" accept="image/png,image/jpeg,image/gif,video/mp4,video/webm,video/quicktime"><div id="messageMediaPreview"></div><div class="small">PNG / JPG / GIF / MP4 / WEBM / MOV — حتى 25MB.</div></div>
+<button onclick="sendMessage()">📨 إرسال الرسالة</button><div id="messageStatus" class="status"></div>
+</div>
+</div>
+
+
+<div class="card">
+  <div class="top">
+    <div><h2 style="margin:0">📨 سجل الرسائل</h2><div class="sub">اعرف مين شاف الرسالة ومين لسه، واحذف رسالة واحدة أو كل الرسائل.</div></div>
+    <button class="btn-red" onclick="deleteAllMessages()">🗑️ حذف كل الرسائل</button>
+  </div>
+  <div id="messageHistory" style="margin-top:12px"></div>
+  <div id="historyStatus" class="status"></div>
+</div>
+<div id="modalRoot"></div>
+
+<script>
+const SUPABASE_URL = "https://clobfjrjhdysmqhbwzlc.supabase.co";
+const SUPABASE_KEY = "sb_publishable_LEFYVl0Y8VOnMIbBZev1Vg_0pYSMWpv";
+const sb = window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+const $=id=>document.getElementById(id);
+let users=[], currentUserId=null, titleSelection=[], pendingAvatarFile=null;
+
+// Always pass the current Supabase access token explicitly to Edge Functions.
+// This fixes admin pages where functions.invoke() can otherwise reach the
+// function without the user's Authorization header.
+async function invokeAuthedFunction(functionName, body){
+  const {data:{session}, error}=await sb.auth.getSession();
+  if(error) throw new Error('تعذر قراءة جلسة الأدمن: '+(error.message||'خطأ غير معروف'));
+  if(!session?.access_token) throw new Error('جلسة الأدمن منتهية أو غير موجودة. سجّل الدخول من جديد.');
+  const result=await sb.functions.invoke(functionName,{
+    body,
+    headers:{Authorization:`Bearer ${session.access_token}`}
+  });
+  return result;
+}
+
+const TITLE_PRESETS=['قمر','نجمة','وردة','ميوش','ميموية','صحبي','صحبتي','صديقي','صديقتي','أمير','ملكة','نجم','كوكب','لؤلؤة','فراشة','سكر','عسل','برنس','برنسيسة','شطور','جدع','باشا','باشمهندس','فنان','فنانة','مبدع','مبدعة','أسطورة','روح حلوة','الجامد','الجامدة','الرايق','الرايقة','الكابتن','الزعيم','الملكة','الأمير','نجم اليوم','صاحبنا','صاحبتنا','رفيق','رفيقة','غالي','غالية'];
+const THEME_FALLBACK={
+'theme-1':'التصميم 1','theme-2':'التصميم الأخضر','theme-3':'التصميم الإبداعي','theme-4':'التصميم التحريري','theme-5':'الرمادي المصقول والكهرماني','theme-6':'الأزرق الملكي والذهبي','theme-7':'دراسة الزمرد','theme-8':'العنابي الملكي والشمبانيا','theme-baby-blue':'الأزرق الفاتح','theme-aurora-glass':'زجاج الشفق','theme-warda-pink':'الوردي الورد','theme-legend-pink':'الوردي الأسطوري','theme-legend-babyblue':'بيبي بلو الأسطوري','theme-legend-night':'الليل الساحر','theme-pop-pink':'وردي بابلجم','theme-frost-blue':'الجليدي','theme-galaxy':'المجرة','theme-forest':'الغابة الساحرة'};
+
+function esc(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));}
+function show(id,text,type='ok'){const e=$(id);if(!e)return;e.textContent=text;e.className='status '+type;}
+function titleList(v){if(Array.isArray(v))return v.map(x=>String(x).trim()).filter(Boolean);return String(v||'').split(/[,،|]/).map(x=>x.trim()).filter(Boolean);}
+function nameOf(u){return (u?.full_name||u?.name||'الاسم غير مسجل').trim()||'الاسم غير مسجل';}
+function phoneOf(u){return (u?.phone_number||u?.phone||'التليفون غير مسجل').trim()||'التليفون غير مسجل';}
+function statusOf(u){if(u?.role==='admin'||u?.role==='super_admin')return ['admin','أدمن ذهبي','admin'];if(u?.role==='moderator')return ['moderator','مشرف','mod'];if(u?.status==='revoked')return ['revoked','مرفوض / موقوف','off'];if(u?.status==='pending')return ['pending','في انتظار الموافقة','off'];if(u?.account_type==='temporary'||u?.is_temporary===true||u?.must_change_credentials===true)return ['temporary','حساب مؤقت',''];return ['approved','عضو مقبول',''];}
+function avatarUrl(u){const p=u?.avatar_path||u?.avatar_url;if(!p)return '';if(/^https?:|^data:|^blob:/i.test(p))return p;return sb.storage.from('avatars').getPublicUrl(p).data?.publicUrl||'';}
+
+async function login(){
+ const email=$('email').value.trim(),password=$('password').value;if(!email||!password)return show('loginStatus','اكتب الإيميل وكلمة السر.','err');
+ $('loginBtn').disabled=true;$('loginBtn').textContent='جاري الدخول...';
+ try{const {data,error}=await sb.auth.signInWithPassword({email,password});if(error)throw error;
+ const {data:p,error:pe}=await sb.from('profiles').select('id,role,is_owner_admin,full_name,name,email').eq('id',data.user.id).maybeSingle();if(pe)throw pe;
+ if(!p?.is_owner_admin){await sb.auth.signOut();throw new Error('هذا الحساب ليس الأدمن المالك.');}
+ currentUserId=data.user.id;$('loginView').classList.add('hidden');$('appView').classList.remove('hidden');await loadUsers();
+ }catch(e){show('loginStatus',e.message||'تعذر الدخول','err');}finally{$('loginBtn').disabled=false;$('loginBtn').textContent='دخول';}
+}
+async function logout(){await sb.auth.signOut();location.reload();}
+
+async function loadUsers(){
+ $('users').innerHTML='<p class="muted">جاري تحميل المستخدمين...</p>';
+ try{const [p,r]=await Promise.all([sb.from('profiles').select('*').order('created_at',{ascending:false}),sb.from('account_requests').select('*').order('created_at',{ascending:false})]);
+ if(p.error)throw p.error;if(r.error)throw r.error;users=p.data||[];window.requests=r.data||[];await loadTemporaryRequests();renderStats();fillMessageUsers();renderUsers();$('users').insertAdjacentHTML('beforeend',renderTemporaryRequests());await loadMessageHistory();
+ }catch(e){$('users').innerHTML='';show('mainStatus','تعذر تحميل المستخدمين: '+(e.message||'خطأ'),'err');}
+}
+function renderStats(){
+ const c=x=>users.filter(u=>u.role===x).length;
+ $('stats').innerHTML=[['👥','كل الحسابات',users.length],['👑','الأدمن',c('admin')+c('super_admin')],['🛡️','المشرفون',c('moderator')],['⏳','طلبات معلقة',users.filter(u=>u.status==='pending').length]].map(x=>`<div class="stat">${x[0]}<div class="muted">${x[1]}</div><b>${x[2]}</b></div>`).join('');
+}
+function fillMessageUsers(){
+ $('messageUser').innerHTML='<option value="all">📢 جميع الحسابات</option>'+users.filter(u=>!u.is_owner_admin).map(u=>`<option value="${esc(u.id)}">${esc(nameOf(u))} — ${esc(u.email||'بدون بريد')}</option>`).join('');
+}
+function syncMessageTarget(){}
+
+function renderUsers(){
+ const q=$('search').value.trim().toLowerCase(),rf=$('roleFilter').value,sf=$('statusFilter').value;
+ const list=users.filter(u=>{const s=statusOf(u)[0];const hay=[u.full_name,u.name,u.email,u.phone,u.phone_number,u.role,u.status].filter(Boolean).join(' ').toLowerCase();return(!q||hay.includes(q))&&(!rf||((rf==='admin')?(u.role==='admin'||u.role==='super_admin'):u.role===rf))&&(!sf||s===sf);});
+ if(!list.length){$('users').innerHTML='<p class="muted">لا توجد نتائج.</p>';return;}
+ $('users').innerHTML=list.map(userCard).join('');
+}
+function userCard(u){
+ const [sk,sl,bt]=statusOf(u),av=avatarUrl(u),titles=titleList(u.profile_title),vis=visibleTitleList(u);
+ const owner=u.is_owner_admin;
+ return `<div class="user">
+ <div class="userhead">${av?`<img class="avatar" src="${esc(av)}" alt="">`:`<div class="avatar">${esc(nameOf(u).slice(0,1))}</div>`}
+ <div style="flex:1"><div class="name">${esc(nameOf(u))}</div><div class="email">${esc(u.email||'البريد غير مسجل')}</div>
+ <div class="meta">${esc(phoneOf(u))} ${u.created_at?' • '+esc(new Date(u.created_at).toLocaleDateString('ar-EG')):''}</div>
+ <div class="badges"><span class="badge ${bt}">${esc(sl)}</span>${vis.map(t=>`<span class="badge">${esc(t)}</span>`).join('')}</div></div></div>
+ <div class="actions">
+ <button class="btn-gray" onclick="openEdit('${esc(u.id)}')">✏️ تعديل</button>
+ <button class="btn-cyan" onclick="openThemes('${esc(u.id)}')">🎨 سمات</button>
+ ${owner?'':`<button class="btn-purple" onclick="changeRole('${esc(u.id)}','moderator')">🛡️ مشرف</button><button class="btn-gold" onclick="changeRole('${esc(u.id)}','admin')">👑 أدمن</button><button class="btn-gray" onclick="changeRole('${esc(u.id)}','member')">👤 عضو</button>
+ ${sk==='pending'?`<button class="btn-green" onclick="approve('${esc(u.id)}')">✅ قبول</button>`:''}
+ ${sk!=='revoked'&&sk!=='admin'?`<button class="btn-red" onclick="rejectUser('${esc(u.id)}')">🚫 رفض / سحب</button>`:''}
+ ${sk==='revoked'?`<button class="btn-green" onclick="approve('${esc(u.id)}')">🔄 إعادة تفعيل</button>`:''}
+ <button class="btn-red" onclick="deleteUser('${esc(u.id)}')">🗑️ حذف الحساب</button>`}
+ <button class="btn-gray" onclick="toggleDetails('${esc(u.id)}')">👁️ تفاصيل</button>
+ </div>
+ <div class="details" id="d-${esc(u.id)}"><div class="formgrid">
+ <div><b>البريد:</b><div class="muted">${esc(u.email||'غير مسجل')}</div></div><div><b>الحالة:</b><div class="muted">${esc(sl)}</div></div>
+ <div><b>اللقب:</b><div class="muted">${esc(u.profile_title||'بدون لقب')}</div></div><div><b>عدد مرات الدخول:</b><div class="muted">${esc(u.login_count??0)}</div></div></div></div>
+ </div>`;
+}
+function toggleDetails(id){$('d-'+id)?.classList.toggle('open');}
+function visibleTitleList(u){const all=titleList(u.profile_title);if(u.visible_titles==null)return all;const chosen=new Set(titleList(u.visible_titles));return all.filter(t=>chosen.has(t));}
+
+async function changeRole(id,role){
+ const u=users.find(x=>String(x.id)===String(id));if(!u||u.is_owner_admin)return show('mainStatus','لا يمكن تغيير صلاحية الأدمن المالك.','err');
+ if(!confirm('تأكيد تحويل '+nameOf(u)+' إلى '+(role==='admin'?'أدمن':role==='moderator'?'مشرف':'عضو')+'؟'))return;
+ try{const {data,error}=await sb.rpc('admin_update_user_profile',{p_user_id:id,p_name:u.name??u.full_name??null,p_phone:u.phone??u.phone_number??null,p_title:u.profile_title??null,p_role:role});if(error)throw error;if(data?.error)throw new Error(data.error);show('mainStatus','تم تغيير الصلاحية فقط ✅','ok');await loadUsers();}
+ catch(e){show('mainStatus','لم يتم تغيير الصلاحية: '+(e.message||'خطأ'),'err');}
+}
+async function approve(id){try{const {error}=await sb.rpc('admin_approve_user',{p_user_id:id});if(error)throw error;show('mainStatus','تم قبول/إعادة تفعيل الحساب ✅','ok');await loadUsers();}catch(e){show('mainStatus','تعذر القبول: '+e.message,'err');}}
+async function rejectUser(id){
+ const note=prompt('اكتب سبب الرفض أو السحب الذي سيظهر للمستخدم:','تم إيقاف الحساب مؤقتًا. برجاء التواصل مع الإدارة.');
+ if(note===null)return;if(!note.trim())return alert('اكتب سببًا أولًا.');
+ try{const {error}=await sb.rpc('admin_reject_user',{p_user_id:id,p_note:note.trim()});if(error)throw error;show('mainStatus','تم رفض/إيقاف الحساب وإرسال السبب للمستخدم ✅','ok');await loadUsers();}catch(e){show('mainStatus','تعذر تنفيذ الرفض: '+e.message,'err');}
+}
+async function deleteUser(id){
+ const u=users.find(x=>String(x.id)===String(id));if(!u||u.is_owner_admin)return show('mainStatus','لا يمكن حذف الأدمن المالك.','err');
+ if(!confirm('⚠️ سيتم حذف حساب '+nameOf(u)+' نهائيًا. متأكد؟'))return;
+ try{let done=false,firstErr=null;try{const r=await sb.rpc('admin_delete_user',{p_user_id:id});if(!r.error)done=true;else firstErr=r.error;}catch(_){}
+ if(!done){const r=await invokeAuthedFunction('admin-user-management',{action:'delete',user_id:id});if(r.error)throw firstErr||r.error;}
+ show('mainStatus','تم حذف الحساب نهائيًا ✅','ok');await loadUsers();}catch(e){show('mainStatus','تعذر حذف الحساب: '+(e.message||'تأكد من نشر دالة الإدارة.'),'err');}
+}
+
+
+
+async function openTemporaryAccount(){
+ $('modalRoot').innerHTML=`<div class="modal-back" onclick="if(event.target===this)closeModal()"><div class="modal">
+ <div class="modal-head"><h2>⏳ حساب مؤقت</h2><button class="close" onclick="closeModal()">×</button></div>
+ <p class="muted">بنفس إعدادات موقعك: البريد وكلمة السر فقط.</p>
+ <div class="field"><label>البريد الإلكتروني</label><input id="tempEmail" type="email" placeholder="example@gmail.com"></div>
+ <div class="field"><label>كلمة السر</label><input id="tempPassword" type="password" minlength="8" placeholder="8 أحرف على الأقل"></div>
+ <div class="field"><label>رسالة/ملاحظة اختيارية</label><textarea id="tempNote" placeholder="اختياري"></textarea></div>
+ <div class="actions"><button onclick="createTemporaryRequest()">⏳ إنشاء الحساب المؤقت</button><button class="btn-gray" onclick="closeModal()">إلغاء</button></div>
+ <div id="tempStatus" class="status"></div>
+ </div></div>`;
+}
+async function createTemporaryRequest(){
+ const email=$('tempEmail').value.trim(),password=$('tempPassword').value,note=$('tempNote').value.trim();
+ if(!email||!password)return show('tempStatus','البريد وكلمة السر مطلوبان.','err');
+ if(password.length<8)return show('tempStatus','كلمة السر يجب أن تكون 8 أحرف على الأقل.','err');
+ try{
+   const r=await invokeAuthedFunction('admin-create-pending-user',{email,password,note});
+   if(r.error)throw new Error(r.error.message||'تعذر إنشاء الطلب.');
+   if(r.data?.error)throw new Error(r.data.error);
+   show('tempStatus','تم إنشاء الحساب المؤقت وإضافته للطلبات ✅','ok');
+   setTimeout(async()=>{closeModal();await loadUsers();},700);
+ }catch(e){show('tempStatus','لم يتم إنشاء الحساب: '+(e.message||'تأكد من نشر Edge Function باسم admin-create-pending-user.'),'err');}
+}
+async function loadTemporaryRequests(){
+ try{
+  // Match the real site flow: temporary accounts are created first, then the user
+  // submits a temporary_completion request after completing their data.
+  window.tempRequests=(window.requests||[]).filter(r=>r.request_type==='temporary_completion' && r.status==='pending');
+ }catch(e){window.tempRequests=[];}
+}
+function renderTemporaryRequests(){
+ const reqs=window.tempRequests||[];
+ if(!reqs.length)return '';
+ return `<div class="card"><div class="top"><h2>⏳ طلبات إكمال الحسابات المؤقتة</h2><span class="badge off">${reqs.length} طلب</span></div>`+
+ reqs.map(r=>{
+  const u=users.find(x=>String(x.id)===String(r.user_id))||{};
+  return `<div class="user"><div class="name">${esc(nameOf(u)||'حساب مؤقت')}</div><div class="email">${esc(u.email||'بدون بريد')}</div><div class="meta">${esc(phoneOf(u)||'')} • ${esc(r.created_at?new Date(r.created_at).toLocaleString('ar-EG'):'')}</div>${r.note?`<div class="small" style="margin-top:7px">${esc(r.note)}</div>`:''}<div class="actions"><button class="btn-green" onclick="approveTemporary('${esc(r.id)}','${esc(r.user_id||'')}')">✅ موافقة</button><button class="btn-red" onclick="rejectTemporary('${esc(r.id)}','${esc(r.user_id||'')}')">🚫 رفض وكتابة رسالة</button></div></div>`;
+ }).join('')+'</div>';
+}
+async function approveTemporary(requestId,userId){
+ if(!confirm('تأكيد الموافقة على إكمال الحساب؟'))return;
+ try{
+  const a=await sb.rpc('admin_approve_user',{p_user_id:userId});
+  if(a.error)throw a.error;
+  const u=await sb.from('account_requests').update({status:'approved',reviewed_at:new Date().toISOString()}).eq('id',requestId);
+  if(u.error)throw u.error;
+  show('mainStatus','تمت الموافقة على الحساب المؤقت ✅','ok');await loadUsers();
+ }catch(e){show('mainStatus','تعذر الموافقة: '+(e.message||'خطأ'),'err');}
+}
+async function rejectTemporary(requestId,userId){
+ const reason=prompt('اكتب رسالة الرفض التي ستظهر لصاحب الحساب:','تم رفض إكمال الحساب من الإدارة.');
+ if(reason===null)return;if(!reason.trim())return alert('اكتب رسالة الرفض.');
+ try{
+  const a=await sb.rpc('admin_reject_user',{p_user_id:userId,p_note:reason.trim()});
+  if(a.error)throw a.error;
+  const u=await sb.from('account_requests').update({status:'rejected',note:reason.trim(),reviewed_at:new Date().toISOString()}).eq('id',requestId);
+  if(u.error)throw u.error;
+  show('mainStatus','تم رفض الحساب وحفظ رسالة الرفض ✅','ok');await loadUsers();
+ }catch(e){show('mainStatus','تعذر الرفض: '+(e.message||'خطأ'),'err');}
+}
+async function loadMessageHistory(){
+ const box=$('messageHistory');if(!box)return;
+ try{
+  const r=await sb.from('user_messages').select('*').order('created_at',{ascending:false});
+  if(r.error)throw r.error;const rows=r.data||[];
+  if(!rows.length){box.innerHTML='<p>لا توجد رسائل مرسلة.</p>';return;}
+  const ids=rows.map(x=>x.id);
+  let reads=[];
+  const rr=await sb.from('message_reads').select('message_id,user_id,seen_at').in('message_id',ids);
+  if(!rr.error)reads=rr.data||[];
+  const people=users.filter(u=>!u.is_owner_admin);
+  box.innerHTML=rows.map(m=>{
+   const rc=reads.filter(x=>String(x.message_id)===String(m.id));
+   const targetUsers=m.target_user_id ? people.filter(u=>String(u.id)===String(m.target_user_id)) : people;
+   const seenIds=new Set(rc.map(x=>String(x.user_id)));
+   const unseenUsers=targetUsers.filter(u=>!seenIds.has(String(u.id)));
+   const seenNames=rc.map(x=>{
+    const u=users.find(u=>String(u.id)===String(x.user_id));
+    return u?`${nameOf(u)} — ${new Date(x.seen_at).toLocaleString('ar-EG')}`:'مستخدم';
+   });
+   const unseenNames=unseenUsers.map(u=>nameOf(u));
+   const target=m.target_user_id?'مستخدم محدد':'جميع الحسابات';
+   return `<div class="user"><div class="top"><div><div class="name">${esc(m.title||'بدون عنوان')}</div><div class="meta">${target} • ${m.created_at?esc(new Date(m.created_at).toLocaleString('ar-EG')):''}</div></div><button class="btn-red" onclick="deleteMessage('${esc(m.id)}')">🗑️ حذف</button></div><div class="small" style="margin-top:7px;white-space:pre-wrap">${esc(m.body||'')}</div><div class="badges"><span class="badge">👁️ شافها ${rc.length}</span><span class="badge off">⏳ لسه مشافهاش ${unseenUsers.length}</span></div><div class="small" style="margin-top:8px"><b>شافها:</b> ${esc(seenNames.length?seenNames.join('، '):'ولا حد لسه')}</div><div class="small" style="margin-top:5px"><b>لسه مشافهاش:</b> ${esc(unseenNames.length?unseenNames.join('، '):'الكل شافها')}</div></div>`;
+  }).join('');
+ }catch(e){box.innerHTML='';show('historyStatus','تعذر تحميل سجل الرسائل: '+(e.message||'أنشئ جدول message_reads من SQL المرفق.'),'err');}
+}
+async function deleteMessage(id){
+ if(!confirm('حذف الرسالة؟ لن تظهر للمستخدم بعد الحذف.'))return;
+ try{const r=await sb.from('user_messages').delete().eq('id',id);if(r.error)throw r.error;show('historyStatus','تم حذف الرسالة ولن تظهر للمستخدمين بعد الآن ✅','ok');await loadMessageHistory();}catch(e){show('historyStatus','تعذر حذف الرسالة: '+e.message,'err');}
+}
+async function deleteAllMessages(){
+ if(!confirm('⚠️ حذف كل الرسائل؟ الحذف سيمنع ظهورها للمستخدمين.'))return;
+ try{const r=await sb.from('user_messages').delete().not('id','is',null);if(r.error)throw r.error;show('historyStatus','تم حذف كل الرسائل ولن تظهر للمستخدمين بعد الآن ✅','ok');await loadMessageHistory();}catch(e){show('historyStatus','تعذر حذف الرسائل: '+e.message,'err');}
+}
+
+async function readEdgeError(result, fallback){
+  if(result?.data?.error) return String(result.data.error);
+  if(result?.error?.context){
+    try{ const payload=await result.error.context.json(); if(payload?.error) return String(payload.error); }catch(_){}
+  }
+  return String(result?.error?.message||fallback||'خطأ غير معروف');
+}
+
+function openInstantAccount(){
+ const themeEntries=Object.entries(THEME_FALLBACK);
+ $('modalRoot').innerHTML=`<div class="modal-back" onclick="if(event.target===this)closeModal()"><div class="modal">
+ <div class="modal-head"><h2>⚡ إنشاء حساب فوري</h2><button class="close" onclick="closeModal()">×</button></div>
+ <p class="muted">الحساب يتنشأ فورًا، حالته <b>approved</b> تلقائيًا، ولا يدخل في طلبات الموافقة.</p>
+ <div class="formgrid">
+  <div><label>اسم المستخدم</label><input id="quickName" placeholder="مثال: Ahmed"></div>
+  <div><label>البريد الإلكتروني</label><input id="quickEmail" type="email" placeholder="example@gmail.com"></div>
+  <div><label>رقم الهاتف</label><input id="quickPhone" placeholder="01xxxxxxxxx"></div>
+  <div><label>كلمة السر</label><input id="quickPassword" type="password" minlength="8" placeholder="8 أحرف على الأقل"></div>
+ </div>
+ <div class="field"><label>نوع كلمة السر</label>
+  <select id="quickPasswordMode"><option value="permanent">🔒 نهائية — يدخل بها عادي</option><option value="temporary">🔐 مؤقتة — يغيرها إجباريًا عند أول دخول</option></select>
+ </div>
+ <div class="field"><label>الصلاحية</label><select id="quickRole"><option value="member">👤 عضو</option><option value="moderator">🛡️ مشرف</option><option value="admin">👑 أدمن ذهبي</option></select></div>
+
+ <div class="field"><label>🏷️ الألقاب — اختار أي عدد</label>
+ <div class="title-grid" id="quickTitleGrid">${TITLE_PRESETS.map(t=>`<button type="button" class="title-option" data-quick-title="${esc(t)}" onclick="toggleQuickTitle(this)">✦ ${esc(t)}</button>`).join('')}</div>
+ <div style="display:flex;gap:7px;margin-top:8px"><input id="quickCustomTitle" placeholder="لقب من عندك"><button type="button" onclick="addQuickTitle()">إضافة</button></div>
+ <div id="quickSelectedTitles" class="chips" style="margin-top:8px"></div></div>
+
+ <div class="field"><label>🎨 السمة الأساسية</label>
+ <select id="quickTheme"><option value="">السمة الافتراضية</option>${themeEntries.map(([k,n])=>`<option value="${esc(k)}">${esc(n)}</option>`).join('')}</select>
+ </div><div class="field"><label>زر السمات</label><select id="quickThemeButton"><option value="true">✅ متاح للمستخدم</option><option value="false">🚫 غير متاح للمستخدم</option></select></div>
+ <div class="field"><label>🎨 السمات المسموح بها</label>
+ <div class="theme-grid" id="quickThemeGrid">${themeEntries.map(([k,n])=>`<label><input type="checkbox" value="${esc(k)}" checked> ${esc(n)}</label>`).join('')}</div>
+ <label style="display:flex;gap:7px;align-items:center;margin-top:9px"><input id="quickRestrictThemes" type="checkbox" style="width:auto"> السماح بهذه السمات فقط</label></div>
+
+ <div class="actions"><button onclick="createInstantAccount()">⚡ إنشاء الحساب الآن</button><button class="btn-gray" onclick="closeModal()">إلغاء</button></div>
+ <div id="quickStatus" class="status"></div>
+ </div></div>`;
+ window.quickTitles=[];
+}
+
+function toggleQuickTitle(btn){
+ const t=btn.getAttribute('data-quick-title');if(!t)return;
+ window.quickTitles=window.quickTitles||[];
+ if(window.quickTitles.includes(t))window.quickTitles=window.quickTitles.filter(x=>x!==t);
+ else window.quickTitles.push(t);
+ btn.classList.toggle('active');
+ $('quickSelectedTitles').innerHTML=window.quickTitles.map(x=>`<span class="chip selected-title">✦ ${esc(x)}</span>`).join('');
+}
+function addQuickTitle(){
+ const input=$('quickCustomTitle'),v=input.value.trim();if(!v)return;
+ window.quickTitles=window.quickTitles||[];
+ if(!window.quickTitles.includes(v))window.quickTitles.push(v);
+ input.value='';
+ $('quickSelectedTitles').innerHTML=window.quickTitles.map(x=>`<span class="chip selected-title">✦ ${esc(x)}</span>`).join('');
+}
+
+async function createInstantAccount(){
+ const name=$('quickName').value.trim(),email=$('quickEmail').value.trim(),phone=$('quickPhone').value.trim();
+ const password=$('quickPassword').value,mode=$('quickPasswordMode').value,role=$('quickRole').value;
+ const titles=(window.quickTitles||[]).join('، ');
+ const themeId=$('quickTheme').value||null;
+ const allowedThemes=[...document.querySelectorAll('#quickThemeGrid input:checked')].map(x=>x.value);
+ const restrictThemes=$('quickRestrictThemes').checked,themeButton=$('quickThemeButton').value==='true';
+ if(!name||!email||!password)return show('quickStatus','اكتب الاسم والبريد وكلمة السر.','err');
+ if(password.length<8)return show('quickStatus','كلمة السر يجب أن تكون 8 أحرف على الأقل.','err');
+ if(restrictThemes&&!allowedThemes.length)return show('quickStatus','اختار سمة واحدة على الأقل أو ألغِ تقييد السمات.','err');
+ try{
+  const r=await sb.functions.invoke('admin-create-user',{
+   body:{name,email,phone,password,password_mode:mode,role,profile_title:titles||null,visible_titles:titles||null,
+         theme_key:themeId,allowed_theme_keys:allowedThemes,restrict_themes:restrictThemes,themes_button_enabled:themeButton}
+  });
+  if(r.error) throw new Error(await readEdgeError(r,'تعذر تشغيل admin-create-user.'));
+  if(r.data?.error) throw new Error(r.data.error);
+  show('quickStatus',mode==='temporary'
+    ?'تم إنشاء الحساب فورًا بالألقاب والسمات. كلمة السر مؤقتة وسيُطلب تغييرها عند أول دخول بها ✅'
+    :'تم إنشاء الحساب فورًا بالألقاب والسمات وبكلمة سر نهائية، ولا يحتاج موافقة ✅','ok');
+  setTimeout(async()=>{closeModal();await loadUsers();},1000);
+ }catch(e){show('quickStatus','لم يتم إنشاء الحساب: '+(e.message||'خطأ'),'err');}
+}
+
+function openEdit(id){
+ const u=users.find(x=>String(x.id)===String(id));if(!u)return;titleSelection=titleList(u.profile_title);pendingAvatarFile=null;
+ $('modalRoot').innerHTML=`<div class="modal-back" onclick="if(event.target===this)closeModal()"><div class="modal">
+ <div class="modal-head"><h2>✏️ تعديل المستخدم</h2><button class="close" onclick="closeModal()">×</button></div>
+ <div class="avatar-edit"><img id="avatarPreview" class="avatar-preview" src="${esc(avatarUrl(u))}" onerror="this.removeAttribute('src')"><div><b>${esc(nameOf(u))}</b><div class="small">اختار صورة جديدة من جهازك أو اترك الصورة الحالية كما هي.</div><label class="file-label">🖼️ اختيار صورة<input id="avatarFile" type="file" accept="image/*" onchange="previewAvatar(this)"></label></div></div>
+ <div class="field"><label>الاسم</label><input id="editName" value="${esc(u.full_name||u.name||'')}"></div>
+ <div class="field"><label>رقم التليفون</label><input id="editPhone" value="${esc(u.phone_number||u.phone||'')}"></div>
+ <div class="field"><label>الألقاب</label><div class="title-grid" id="titleGrid">${TITLE_PRESETS.map(t=>`<button type="button" class="title-option ${titleSelection.includes(t)?'active':''}" onclick="toggleTitle('${esc(t)}',this)">✦ ${esc(t)}</button>`).join('')}</div>
+ <div style="display:flex;gap:7px;margin-top:8px"><input id="customTitle" placeholder="لقب من عندك"><button onclick="addCustomTitle()">إضافة</button></div>
+ <div id="selectedTitles" class="chips" style="margin-top:8px">${renderSelectedTitles()}</div></div>
+ <div class="field"><label>الألقاب التي تظهر بجانب الاسم</label><div id="visibleBox">${renderVisiblePicker(u)}</div></div>
+ ${u.is_owner_admin?'':`<div class="field"><label>الصلاحية</label><select id="editRole"><option value="member" ${u.role==='member'||u.role==='user'||!u.role?'selected':''}>عضو</option><option value="moderator" ${u.role==='moderator'?'selected':''}>مشرف</option><option value="admin" ${u.role==='admin'||u.role==='super_admin'?'selected':''}>أدمن ذهبي</option></select></div>`}
+ <div class="field"><label>🔐 تغيير كلمة السر</label><input id="editPassword" type="password" minlength="8" placeholder="اتركها فارغة لعدم التغيير"><select id="editPasswordMode" style="margin-top:7px"><option value="permanent">كلمة سر نهائية — يدخل بها عادي</option><option value="temporary">كلمة سر مؤقتة — يغيرها إجباريًا عند أول دخول</option></select><div class="small">لن تتغير كلمة السر إذا تركت الخانة فارغة.</div></div>
+ <div class="field"><label>🎨 زر السمات</label><select id="editThemeButton"><option value="true">✅ متاح للمستخدم</option><option value="false">🚫 غير متاح للمستخدم</option></select><div class="small">لو متاح، يظهر زر السمات للمستخدم.</div></div>
+ <div class="actions"><button onclick="saveEdit('${esc(u.id)}')">💾 حفظ كل التعديلات</button><button class="btn-gray" onclick="closeModal()">إلغاء</button></div>
+ <div id="editStatus" class="status"></div></div></div>`;
+}
+function renderVisiblePicker(u){const all=titleSelection,vis=new Set(visibleTitleList(u));if(!all.length)return '<div class="small">أضف لقبًا أولًا.</div>';return `<div class="title-grid">${all.map(t=>`<button type="button" class="title-option ${vis.has(t)?'active':''}" data-vis="${esc(t)}" onclick="this.classList.toggle('active')">✦ ${esc(t)}</button>`).join('')}</div>`;}
+function toggleTitle(t,b){if(titleSelection.includes(t))titleSelection=titleSelection.filter(x=>x!==t);else titleSelection.push(t);b.classList.toggle('active');$('selectedTitles').innerHTML=renderSelectedTitles();$('visibleBox').innerHTML=renderVisiblePicker({profile_title:titleSelection.join('، '),visible_titles:null});}
+function renderSelectedTitles(){return titleSelection.map((x,i)=>`<span class="chip selected-title">✦ ${esc(x)} <button type="button" onclick="removeSelectedTitle(${i})" style="padding:1px 6px;border-radius:8px;background:#fee2e2;color:#991b1b;margin-right:4px">×</button></span>`).join('');}
+function removeSelectedTitle(i){titleSelection.splice(i,1);$('selectedTitles').innerHTML=renderSelectedTitles();$('visibleBox').innerHTML=renderVisiblePicker({profile_title:titleSelection.join('، '),visible_titles:null});document.querySelectorAll('#titleGrid .title-option').forEach(b=>{const t=b.getAttribute('onclick')?.match(/toggleTitle\('([^']*)'/)?.[1];if(t)b.classList.toggle('active',titleSelection.includes(t));});}
+function addCustomTitle(){const v=$('customTitle').value.trim();if(!v)return;if(!titleSelection.includes(v))titleSelection.push(v);$('customTitle').value='';$('selectedTitles').innerHTML=renderSelectedTitles();$('visibleBox').innerHTML=renderVisiblePicker({profile_title:titleSelection.join('، '),visible_titles:null});}
+function previewAvatar(inp){const f=inp.files?.[0];if(!f)return;if(!f.type.startsWith('image/'))return alert('اختار صورة فقط.');if(f.size>8*1024*1024)return alert('الصورة يجب ألا تتجاوز 8MB.');pendingAvatarFile=f;const p=$('avatarPreview');p.src=URL.createObjectURL(f);}
+async function uploadAvatar(file,id){const ext=(file.name.split('.').pop()||'jpg').toLowerCase().replace(/[^a-z0-9]/g,'')||'jpg';const path=`users/${id}/${crypto.randomUUID()}.${ext}`;const r=await sb.storage.from('avatars').upload(path,file,{upsert:false,contentType:file.type});if(r.error)throw new Error('رفع الصورة مرفوض من Storage. شغّل SQL المرفق لإصلاح RLS ثم أعد المحاولة.');return path;}
+async function saveEdit(id){
+ const u=users.find(x=>String(x.id)===String(id));if(!u)return;
+ const name=$('editName').value.trim(),phone=$('editPhone').value.trim(),title=titleSelection.join('، ').trim(),role=$('editRole')?.value||u.role||'member';
+ const newPassword=$('editPassword')?.value.trim()||'',passwordMode=$('editPasswordMode')?.value||'permanent',themeButton=$('editThemeButton')?.value==='true';
+ if(!name)return show('editStatus','اكتب الاسم أولًا.','err');
+ if(newPassword&&newPassword.length<8)return show('editStatus','كلمة السر يجب أن تكون 8 أحرف على الأقل.','err');
+ const vis=[...document.querySelectorAll('#visibleBox [data-vis].active')].map(x=>x.getAttribute('data-vis')).filter(Boolean);
+ const btn=document.querySelector('#modalRoot .actions button');if(btn)btn.disabled=true;
+ try{
+  let avatarPath=u.avatar_path||u.avatar_url||null;
+  if(pendingAvatarFile)avatarPath=await uploadAvatar(pendingAvatarFile,id);
+  const {data,error}=await sb.rpc('admin_update_user_profile',{p_user_id:id,p_name:name,p_phone:phone||null,p_title:title||null,p_role:u.is_owner_admin?u.role:role});
+  if(error)throw error;if(data?.error)throw new Error(data.error);
+  if(avatarPath&&avatarPath!==(u.avatar_path||u.avatar_url||null)){
+    const r=await sb.from('profiles').update({avatar_path:avatarPath}).eq('id',id);if(r.error)throw r.error;
+  }
+  const vr=await sb.rpc('admin_set_visible_titles',{p_user_id:id,p_visible_titles:vis.join('، ')});if(vr.error)throw vr.error; const tp=await sb.from('user_theme_preferences').select('id').eq('user_id',id).maybeSingle(); if(tp.error)throw tp.error; if(tp.data){const tr=await sb.from('user_theme_preferences').update({themes_button_enabled:themeButton}).eq('id',tp.data.id);if(tr.error)throw tr.error;}else{const tr=await sb.from('user_theme_preferences').insert({user_id:id,themes_button_enabled:themeButton,restricted_theme_selection:false});if(tr.error)throw tr.error;}
+  if(newPassword){
+    const rr=await invokeAuthedFunction('admin-set-password',{user_id:id,new_password:newPassword,password_mode:passwordMode});
+    if(rr.error) throw new Error(await readEdgeError(rr,'تعذر تشغيل admin-set-password.'));
+    if(rr.data?.error)throw new Error(rr.data.error);
+  }
+  closeModal();
+  show('mainStatus',newPassword
+    ?(passwordMode==='temporary'?'تم حفظ التعديلات وتعيين كلمة سر مؤقتة. سيُطلب من المستخدم تغييرها عند أول دخول بها ✅':'تم حفظ التعديلات وتغيير كلمة السر بنجاح ✅')
+    :'تم حفظ الاسم والتليفون والألقاب والصورة بدون تغيير البريد أو كلمة السر ✅','ok');
+  await loadUsers();
+ }catch(e){show('editStatus','لم يتم الحفظ: '+(e.message||'خطأ'),'err');if(btn)btn.disabled=false;}
+ finally{pendingAvatarFile=null;}
+}
+
+async function openThemes(id){
+ const u=users.find(x=>String(x.id)===String(id));if(!u)return;
+ $('modalRoot').innerHTML='<div class="modal-back"><div class="modal"><div class="modal-head"><h2>🎨 سمات المستخدم</h2><button class="close" onclick="closeModal()">×</button></div><p class="muted">جاري تحميل السمات...</p></div></div>';
+ try{
+  const [tr,pr,ar]=await Promise.all([sb.from('platform_themes').select('*').order('sort_order',{ascending:true}),sb.from('user_theme_preferences').select('*').eq('user_id',id).maybeSingle(),sb.from('user_allowed_themes').select('theme_id').eq('user_id',id)]);
+  let themes=tr.error?[]:(tr.data||[]);if(!themes.length)themes=Object.entries(THEME_FALLBACK).map(([id,name],i)=>({id,display_name:name,sort_order:i}));
+  const pref=pr.data||{},allowed=(ar.data||[]).map(x=>String(x.theme_id));
+  $('modalRoot').innerHTML=`<div class="modal-back"><div class="modal"><div class="modal-head"><h2>🎨 سمات ${esc(nameOf(u))}</h2><button class="close" onclick="closeModal()">×</button></div>
+  <div class="field"><label>السمة الأساسية التي يفتح عليها</label><select id="themeMain"><option value="">السمة الافتراضية</option>${themes.map(t=>`<option value="${esc(t.id)}" ${String(pref.theme_id||'')===String(t.id)?'selected':''}>${esc(t.display_name||t.name||THEME_FALLBACK[t.id]||t.id)}</option>`).join('')}</select></div>
+  <div class="field"><label>إتاحة زر السمات للمستخدم</label><select id="themeButton"><option value="false" ${!pref.themes_button_enabled?'selected':''}>لا</option><option value="true" ${pref.themes_button_enabled?'selected':''}>نعم</option></select></div>
+  <div class="field"><label>تحديد السمات المسموح بها</label><select id="themeRestrict"><option value="false" ${!pref.restricted_theme_selection?'selected':''}>لا — كل السمات</option><option value="true" ${pref.restricted_theme_selection?'selected':''}>نعم — المسموح بها فقط</option></select></div>
+  <div class="field"><label>اختار السمات المسموح بها</label><div class="theme-grid">${themes.map(t=>`<label><input type="checkbox" value="${esc(t.id)}" ${allowed.includes(String(t.id))?'checked':''}>${esc(t.display_name||t.name||THEME_FALLBACK[t.id]||t.id)}</label>`).join('')}</div></div>
+  <div class="actions"><button onclick="saveThemes('${esc(id)}')">💾 حفظ إعدادات السمات</button><button class="btn-gray" onclick="closeModal()">إلغاء</button></div><div id="themeStatus" class="status"></div></div></div>`;
+ }catch(e){$('modalRoot').innerHTML=`<div class="modal-back"><div class="modal"><h2>🎨 السمات</h2><div class="status err">تعذر تحميل السمات: ${esc(e.message||'خطأ')}</div><button onclick="closeModal()">إغلاق</button></div></div>`;}
+}
+async function saveThemes(id){
+ const themeId=$('themeMain').value||null,button=$('themeButton').value==='true',restrict=$('themeRestrict').value==='true',allowed=[...document.querySelectorAll('.theme-grid input:checked')].map(x=>x.value);
+ try{
+  const old=await sb.from('user_theme_preferences').select('id').eq('user_id',id).maybeSingle();if(old.error)throw old.error;
+  const payload={user_id:id,theme_id:themeId,themes_button_enabled:button,restricted_theme_selection:restrict};
+  let r=old.data?await sb.from('user_theme_preferences').update(payload).eq('id',old.data.id):await sb.from('user_theme_preferences').insert(payload);if(r.error)throw r.error;
+  const del=await sb.from('user_allowed_themes').delete().eq('user_id',id);if(del.error)throw del.error;
+  if(restrict&&allowed.length){const ins=await sb.from('user_allowed_themes').insert(allowed.map(x=>({user_id:id,theme_id:x})));if(ins.error)throw ins.error;}
+  closeModal();show('mainStatus','تم حفظ إعدادات السمات للمستخدم ✅','ok');
+ }catch(e){show('themeStatus','تعذر حفظ السمات: '+(e.message||'خطأ'),'err');}
+}
+
+function closeModal(){$('modalRoot').innerHTML='';pendingAvatarFile=null;}
+$('messageMedia').addEventListener('change',function(){const f=this.files?.[0],box=$('messageMediaPreview');box.innerHTML='';if(!f)return;if(f.size>25*1024*1024){alert('حجم المرفق يجب ألا يتجاوز 25MB.');this.value='';return;}const url=URL.createObjectURL(f);box.innerHTML=f.type.startsWith('video/')?`<div class="media-preview"><video controls playsinline src="${esc(url)}"></video></div>`:`<div class="media-preview"><img src="${esc(url)}" alt=""></div>`;});
+
+async function sendMessage(){
+ const target=$('messageUser').value,title=$('messageTitle').value.trim(),body0=$('messageBody').value.trim(),file=$('messageMedia').files?.[0]||null;
+ if(!title)return show('messageStatus','اكتب عنوان الرسالة.','err');if(!body0&&!file)return show('messageStatus','اكتب نص الرسالة أو اختر صورة/فيديو.','err');
+ if(file&&file.size>25*1024*1024)return show('messageStatus','المرفق أكبر من 25MB.','err');
+ const btn=document.querySelector('#messageStatus')?.previousElementSibling;try{
+  let body=body0,marker='';
+  if(file){if(!(file.type.startsWith('image/')||file.type.startsWith('video/')))throw new Error('نوع المرفق غير مدعوم.');const ext=(file.name.split('.').pop()||'bin').toLowerCase();const type=file.type.startsWith('video/')?'video':'image';const path=`messages/${crypto.randomUUID()}.${ext}`;const up=await sb.storage.from('admin-messages').upload(path,file,{upsert:false,contentType:file.type});if(up.error)throw up.error;marker=`[[MIDAD_MEDIA|${type}|${encodeURIComponent(path)}]]`;}
+  if(marker)body=(body?body+'\n\n':'')+marker;
+  const vr=$('messageViews').value,max_views=vr==='unlimited'?null:Math.max(1,parseInt(vr,10)||1);
+  const payload={target_user_id:target==='all'?null:target,title,body,max_views,is_active:true};
+  const {error}=await sb.from('user_messages').insert(payload);if(error)throw error;
+  show('messageStatus',target==='all'?'تم إرسال الرسالة لجميع الحسابات مع المرفق ✅':'تم إرسال الرسالة للحساب المحدد مع المرفق ✅','ok');
+  $('messageTitle').value='';$('messageBody').value='';$('messageMedia').value='';$('messageMediaPreview').innerHTML='';
+ }catch(e){show('messageStatus','تعذر إرسال الرسالة: '+(e.message||'خطأ'),'err');}
+}
+
+sb.auth.getSession().then(async({data})=>{if(!data.session)return;const {data:p}=await sb.from('profiles').select('is_owner_admin').eq('id',data.session.user.id).maybeSingle();if(p?.is_owner_admin){currentUserId=data.session.user.id;$('loginView').classList.add('hidden');$('appView').classList.remove('hidden');loadUsers();}});
+</script>
+</body>
+</html>

@@ -12,10 +12,13 @@ create table if not exists public.platform_buttons (
   image_path text null,
   is_enabled boolean not null default true,
   audience_mode text not null default 'all'
-    check (audience_mode in ('all','members','moderators','admins')),
+    check (audience_mode in ('all','members','moderators','admins','selected')),
+  recipient_ids uuid[] not null default '{}'::uuid[],
   start_at timestamptz null,
   end_at timestamptz null,
   sort_order integer not null default 10,
+  placement text not null default 'outside' check (placement in ('outside','manager','both')),
+  device_mode text not null default 'both' check (device_mode in ('both','mobile','desktop')),
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
   updated_by uuid null references auth.users(id) on delete set null
@@ -79,6 +82,18 @@ using (
       and coalesce(p.status,'active') not in ('pending','revoked')
   )
 );
+
+
+-- Backfill for installations that already created the table before selected-user targeting.
+alter table public.platform_buttons
+  add column if not exists recipient_ids uuid[] not null default '{}'::uuid[];
+
+alter table public.platform_buttons
+  drop constraint if exists platform_buttons_audience_mode_check;
+
+alter table public.platform_buttons
+  add constraint platform_buttons_audience_mode_check
+  check (audience_mode in ('all','members','moderators','admins','selected'));
 
 -- Public images are stored separately so GIF/WebP/etc. can display directly.
 insert into storage.buckets (id, name, public)
@@ -147,10 +162,10 @@ using (
 );
 
 insert into public.platform_buttons
-(button_key,label,color,icon,url,is_enabled,audience_mode,sort_order)
+(button_key,label,color,icon,url,is_enabled,audience_mode,recipient_ids,sort_order)
 values
-('whatsapp','واتساب','#25D366','fa-brands fa-whatsapp','',true,'all',1),
-('telegram','تليجرام','#229ED9','fa-brands fa-telegram','',true,'all',2)
+('whatsapp','واتساب','#25D366','fa-brands fa-whatsapp','',true,'all','{}',1),
+('telegram','تليجرام','#229ED9','fa-brands fa-telegram','',true,'all','{}',2)
 on conflict (button_key) do nothing;
 
 notify pgrst, 'reload schema';

@@ -46,6 +46,13 @@
 .access-home-btn:hover{transform:translateY(-2px);box-shadow:0 14px 28px rgba(37,99,235,.28)}
 @keyframes accessCardIn{from{opacity:0;transform:translateY(12px) scale(.98)}to{opacity:1;transform:none}}
 @media(max-width:520px){.access-page{padding:18px}.access-card{padding:32px 20px 26px;border-radius:24px}.access-card h2{font-size:22px}.access-icon{width:64px;height:64px;border-radius:19px;font-size:27px}}
+
+.platform-button-place-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.platform-button-order{display:flex;gap:5px;flex-wrap:wrap;justify-content:flex-end}
+.platform-button-order button{min-width:34px;padding:7px 9px!important}
+.platform-button-device-badge,.platform-button-place-badge{display:inline-flex;align-items:center;gap:4px;padding:3px 7px;border-radius:999px;font-size:10px;font-weight:800;margin-inline-start:4px;border:1px solid var(--border,#e2e8f0);background:var(--surface-alt,#f8fafc)}
+@media(max-width:700px){.platform-button-place-grid{grid-template-columns:1fr}}
+
 </style>
 
 <style id="platform-buttons-style">
@@ -73,6 +80,11 @@
 .platform-button-tip{font-size:.78rem;line-height:1.8;color:var(--text-muted,#64748b);padding:10px 12px;border-radius:13px;background:var(--surface-alt,#f8fafc);border:1px solid var(--border,#e2e8f0)}
 .platform-button-color-row{display:flex;align-items:center;gap:10px}
 .platform-button-color-row input[type=color]{width:48px;height:40px;padding:3px;border-radius:10px;border:1px solid var(--border,#dbe5ef);background:var(--surface,#fff);cursor:pointer}
+
+.platform-button-selected-users{display:none;margin-top:10px}
+.platform-button-selected-users.show{display:block}
+.platform-button-selected-users select{width:100%;min-height:170px}
+.platform-button-selected-note{font-size:.75rem;color:var(--text-muted,#64748b);margin-top:6px;line-height:1.7}
 .platform-button-switch{display:flex;align-items:center;gap:10px;padding:10px 12px;border:1px solid var(--border,#dbe5ef);border-radius:13px;background:var(--surface-alt,#f8fafc)}
 .platform-button-switch input{width:18px;height:18px;accent-color:var(--primary,#2563eb)}
 .platform-button-empty{padding:22px;text-align:center;border:1px dashed var(--border,#cbd5e1);border-radius:16px;color:var(--text-muted,#64748b)}
@@ -812,7 +824,7 @@
                     <div class="manager-page-titles">
                       ${titles.map(t => `<span class="manager-page-title-chip">✦ ${escapeHtml(t)}</span>`).join('')}
                     </div>
-                    <div class="manager-page-message">${escapeHtml(pm.message || 'أهلًا بيكم في المنصة ✨')}</div>
+                    <div class="manager-page-message">${escapeHtml(pm.message || 'أهلًا بيكم في المنصة ✨')}</div><div style="margin-top:12px">${renderPlatformButtons('manager')}</div>
                   </div>
                 </div>
 
@@ -1532,7 +1544,7 @@
                 return `<div class="modal um-modal manager-modal" data-stop="1">
                   <div class="modal-head"><h3><i class="fas fa-crown" style="color:#d89b00"></i> ${escapeHtml(pm.name||'مدير المنصة')}</h3><button class="modal-close" data-act="close-modal">×</button></div>
                   <div class="manager-hero"><div class="manager-avatar-lg">${avatar}</div><div><span class="manager-public-badge"><i class="fas fa-shield-alt"></i> ملف عام للمنصة</span><div class="manager-title-list">${titles.map(t=>`<span class="manager-title-chip">✦ ${escapeHtml(t)}</span>`).join('')}</div></div></div>
-                  <div class="manager-public-note">${escapeHtml(pm.message||'أهلًا بيكم في المنصة ✨')}</div>
+                  <div class="manager-public-note">${escapeHtml(pm.message||'أهلًا بيكم في المنصة ✨')}</div><div style="margin-top:12px">${renderPlatformButtons('manager')}</div>
                   <div class="modal-actions"><button class="btn-save" data-act="close-modal">إغلاق</button></div>
                 </div>`;
             }
@@ -1713,6 +1725,11 @@
                 platformButtonImage.removeEventListener('change',onPlatformButtonImageChange);
                 platformButtonImage.addEventListener('change',onPlatformButtonImageChange);
             }
+            const platformButtonAudience=document.getElementById('platform-btn-audience');
+            if(platformButtonAudience){
+                platformButtonAudience.removeEventListener('change',onPlatformButtonAudienceChange);
+                platformButtonAudience.addEventListener('change',onPlatformButtonAudienceChange);
+            }
 
             // File inputs - avatar
             const avatarInput = document.getElementById('modal-avatar');
@@ -1779,6 +1796,11 @@
 
         }
 
+
+        function onPlatformButtonAudienceChange(e){
+            const box=document.getElementById('platform-btn-selected-users-box');
+            if(box) box.classList.toggle('show', e.target.value==='selected');
+        }
 
         function onPlatformButtonImageChange(e){
             e.stopPropagation();
@@ -2538,7 +2560,7 @@
                     if(!isAdmin()) return showToast('غير مصرح به.','error');
                     openModal('platform-button-editor',{
                         isNew:true,
-                        button:{button_key:'custom-'+crypto.randomUUID(),label:'رابط جديد',color:'#2563eb',icon:'fas fa-link',url:'',image_url:'',image_path:null,is_enabled:true,audience_mode:'all',sort_order:10,start_at:null,end_at:null},
+                        button:{button_key:'custom-'+crypto.randomUUID(),label:'',color:'#2563eb',icon:'fas fa-link',url:'',image_url:'',image_path:null,is_enabled:true,audience_mode:'all',sort_order:10,placement:'outside',device_mode:'both',recipient_ids:[],start_at:null,end_at:null},
                         platformButtonImageFile:null,
                         imagePreview:''
                     });
@@ -2563,6 +2585,34 @@
                     state.platformButtons=(state.platformButtons||[]).map(x=>String(x.id||x.button_key)===String(key)?data:x);
                     render();
                     showToast(data.is_enabled?'تم إظهار الزر.':'تم إخفاء الزر.','success');
+                    break;
+                }
+
+                case 'move-platform-button-up':
+                case 'move-platform-button-down': {
+                    if(!isAdmin()) return showToast('غير مصرح به.','error');
+                    const key=el.dataset.platformButtonId;
+                    const list=[...(state.platformButtons||[])].sort((a,b)=>Number(a.sort_order||0)-Number(b.sort_order||0));
+                    const idx=list.findIndex(x=>String(x.id||x.button_key)===String(key));
+                    const dir=act==='move-platform-button-up'?-1:1;
+                    const target=list[idx+dir];
+                    if(idx<0 || !target) break;
+                    const current=list[idx];
+                    try{
+                        const firstOrder=Number(current.sort_order||idx+1), secondOrder=Number(target.sort_order||idx+2);
+                        const results=await Promise.all([
+                            sb.from('platform_buttons').update({sort_order:secondOrder,updated_at:new Date().toISOString()}).eq(current.id?'id':'button_key',current.id||current.button_key),
+                            sb.from('platform_buttons').update({sort_order:firstOrder,updated_at:new Date().toISOString()}).eq(target.id?'id':'button_key',target.id||target.button_key)
+                        ]);
+                        const err=results.find(r=>r.error)?.error;
+                        if(err) throw err;
+                        state.platformButtons=list.map(x=>{
+                            if(String(x.id||x.button_key)===String(current.id||current.button_key)) return {...x,sort_order:secondOrder};
+                            if(String(x.id||x.button_key)===String(target.id||target.button_key)) return {...x,sort_order:firstOrder};
+                            return x;
+                        });
+                        render();
+                    }catch(err){showToast(err?.message||'تعذر تغيير ترتيب الأزرار.','error');}
                     break;
                 }
 
@@ -2591,12 +2641,19 @@
                         const oldButton=m?.button||{};
                         const label=(document.getElementById('platform-btn-label')?.value||'رابط جديد').trim()||'رابط جديد';
                         const url=(document.getElementById('platform-btn-url')?.value||'').trim();
-                        if(!/^https?:\/\//i.test(url)) throw new Error('اكتب رابطًا يبدأ بـ https:// أو http://');
+                        if(url && !/^https?:\/\//i.test(url)) throw new Error('لو هتحط رابط، لازم يبدأ بـ https:// أو http://');
                         const color=document.getElementById('platform-btn-color')?.value||'#2563eb';
                         const icon=(document.getElementById('platform-btn-icon')?.value||'').trim();
                         const imageUrl=(document.getElementById('platform-btn-image-url')?.value||'').trim();
                         const audience=document.getElementById('platform-btn-audience')?.value||'all';
-                        const sort=Number(document.getElementById('platform-btn-sort')?.value||10);
+                        const recipientSelect=document.getElementById('platform-btn-recipients');
+                        const recipientIds=audience==='selected'
+                            ? [...(recipientSelect?.selectedOptions||[])].map(o=>o.value).filter(Boolean)
+                            : [];
+                        if(audience==='selected' && !recipientIds.length) throw new Error('اختَر حسابًا واحدًا على الأقل أو غيّر خيار الظهور.');
+                        const placement=document.getElementById('platform-btn-placement')?.value||'outside';
+                        const deviceMode=document.getElementById('platform-btn-device')?.value||'both';
+                        const sort=Number(document.getElementById('platform-btn-sort')?.value||oldButton.sort_order||10);
                         const start=(document.getElementById('platform-btn-start')?.value||'').trim();
                         const end=(document.getElementById('platform-btn-end')?.value||'').trim();
                         const enabled=!!document.getElementById('platform-btn-enabled')?.checked;
@@ -2616,6 +2673,9 @@
                             image_path:imagePath,
                             is_enabled:enabled,
                             audience_mode:audience,
+                            recipient_ids:recipientIds,
+                            placement,
+                            device_mode:deviceMode,
                             start_at:start?new Date(start).toISOString():null,
                             end_at:end?new Date(end).toISOString():null,
                             sort_order:Number.isFinite(sort)?sort:10,
@@ -3243,8 +3303,8 @@ async function listWelcomeVideoObjects(path=''){
 
         // ─── Platform quick-link buttons ───
         const PLATFORM_BUTTON_DEFAULTS = [
-            {button_key:'whatsapp',label:'واتساب',color:'#25D366',icon:'fa-brands fa-whatsapp',url:'',image_url:'',image_path:null,is_enabled:true,audience_mode:'all',start_at:null,end_at:null,sort_order:1},
-            {button_key:'telegram',label:'تليجرام',color:'#229ED9',icon:'fa-brands fa-telegram',url:'',image_url:'',image_path:null,is_enabled:true,audience_mode:'all',start_at:null,end_at:null,sort_order:2}
+            {button_key:'whatsapp',label:'واتساب',color:'#25D366',icon:'fa-brands fa-whatsapp',url:'',image_url:'',image_path:null,is_enabled:true,audience_mode:'all',start_at:null,end_at:null,sort_order:1,placement:'outside',device_mode:'both',recipient_ids:[]},
+            {button_key:'telegram',label:'تليجرام',color:'#229ED9',icon:'fa-brands fa-telegram',url:'',image_url:'',image_path:null,is_enabled:true,audience_mode:'all',start_at:null,end_at:null,sort_order:2,placement:'outside',device_mode:'both'}
         ];
 
         function platformButtonImageUrl(b){
@@ -3255,15 +3315,32 @@ async function listWelcomeVideoObjects(path=''){
         }
 
         function platformButtonAudienceLabel(mode){
-            return ({all:'الكل',members:'الأعضاء فقط',moderators:'المشرفون فقط',admins:'الأدمن فقط'})[mode] || 'الكل';
+            return ({all:'الكل',members:'الأعضاء فقط',moderators:'المشرفون فقط',admins:'الأدمن فقط',selected:'أشخاص محددون'})[mode] || 'الكل';
         }
-
-        function platformButtonIsVisible(b){
+        function platformButtonPlacementLabel(mode){
+            return ({outside:'بره «ملك المنصة»',manager:'جوه «ملك المنصة»',both:'الاثنين'})[mode] || 'بره «ملك المنصة»';
+        }
+        function platformButtonDeviceLabel(mode){
+            return ({both:'الموبايل والكمبيوتر',mobile:'الموبايل فقط',desktop:'الكمبيوتر فقط'})[mode] || 'الموبايل والكمبيوتر';
+        }
+        function platformButtonDeviceAllowed(mode){
+            const isMobile=window.matchMedia ? window.matchMedia('(max-width: 700px)').matches : window.innerWidth<=700;
+            return mode==='both' || (mode==='mobile' && isMobile) || (mode==='desktop' && !isMobile);
+        }
+        function platformButtonIsVisible(b,placement='outside'){
             if(!b || b.is_enabled === false) return false;
+            const currentPlacement=String(b.placement||'outside');
+            if(!(currentPlacement==='both' || currentPlacement===placement)) return false;
+            if(!platformButtonDeviceAllowed(String(b.device_mode||'both'))) return false;
             const mode=String(b.audience_mode||'all');
             if(mode==='admins' && !isRealAdmin()) return false;
             if(mode==='moderators' && state.role!=='moderator') return false;
             if(mode==='members' && state.role!=='member') return false;
+            if(mode==='selected'){
+                const uid=state.user?.id;
+                const recipients=Array.isArray(b.recipient_ids)?b.recipient_ids:[];
+                if(!uid || !recipients.map(String).includes(String(uid))) return false;
+            }
             const now=Date.now();
             if(b.start_at){
                 const start=new Date(b.start_at).getTime();
@@ -3275,24 +3352,26 @@ async function listWelcomeVideoObjects(path=''){
             }
             return true;
         }
-
         function platformButtonIcon(b){
             const icon=String(b?.icon||'').trim();
             if(icon) return icon;
             return b?.button_key==='whatsapp' ? 'fa-brands fa-whatsapp' : (b?.button_key==='telegram' ? 'fa-brands fa-telegram' : 'fas fa-link');
         }
-
-        function renderPlatformButtons(){
-            const list=(state.platformButtons||[]).filter(platformButtonIsVisible).sort((a,b)=>Number(a.sort_order||0)-Number(b.sort_order||0));
+        function platformButtonHrefAttrs(b){
+            const url=String(b?.url||'').trim();
+            if(/^https?:\/\//i.test(url)) return `href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer"`;
+            return `href="javascript:void(0)" data-platform-no-url="1"`;
+        }
+        function renderPlatformButtons(placement='outside'){
+            const list=(state.platformButtons||[]).filter(b=>platformButtonIsVisible(b,placement)).sort((a,b)=>Number(a.sort_order||0)-Number(b.sort_order||0));
             if(!list.length) return '';
-            return `<div class="platform-link-buttons" aria-label="روابط المنصة">
+            return `<div class="platform-link-buttons" aria-label="روابط المنصة" data-platform-placement="${escapeHtml(placement)}">
                 ${list.map(b=>{
                     const img=platformButtonImageUrl(b);
                     const color=escapeHtml(b.color||'#2563eb');
                     const label=escapeHtml(b.label||'رابط');
                     const icon=escapeHtml(platformButtonIcon(b));
-                    const url=escapeHtml(b.url||'#');
-                    return `<a class="platform-link-btn" href="${url}" target="_blank" rel="noopener noreferrer" style="--platform-btn-color:${color}" title="${label}" aria-label="${label}">
+                    return `<a class="platform-link-btn" ${platformButtonHrefAttrs(b)} style="--platform-btn-color:${color}" title="${label}" aria-label="${label}">
                         ${img ? `<img src="${escapeHtml(img)}" alt="${label}" loading="lazy" onerror="this.style.display='none'">` : `<i class="${icon}" aria-hidden="true"></i>`}
                         <span class="platform-btn-label">${label}</span>
                     </a>`;
@@ -3337,30 +3416,42 @@ async function listWelcomeVideoObjects(path=''){
         function renderPlatformButtonAdminSection(){
             if(!isAdmin()) return '';
             const list=[...(state.platformButtons||[])].sort((a,b)=>Number(a.sort_order||0)-Number(b.sort_order||0));
-            const cards=list.map(b=>{
-                const img=platformButtonImageUrl(b);
-                const icon=platformButtonIcon(b);
-                const color=escapeHtml(b.color||'#2563eb');
+            const cards=list.map((b,index)=>{
+                const img=platformButtonImageUrl(b), icon=platformButtonIcon(b), color=escapeHtml(b.color||'#2563eb');
+                const prev=list[index-1], next=list[index+1];
                 return `<div class="platform-button-admin-card">
                     <div class="platform-button-admin-main">
                         <div class="platform-button-preview" style="background:${color}">
                             ${img?`<img src="${escapeHtml(img)}" alt="">`:`<i class="${escapeHtml(icon)}"></i>`}
                         </div>
                         <div class="platform-button-admin-copy">
-                            <strong>${escapeHtml(b.label||'رابط')}</strong>
-                            <small>${escapeHtml(b.url||'لم يتم وضع رابط بعد')} · ${platformButtonAudienceLabel(b.audience_mode)} · ${b.is_enabled===false?'مخفي':'ظاهر'}</small>
+                            <strong>${escapeHtml(b.label||'رابط بدون اسم')}</strong>
+                            <small>${escapeHtml(b.url||'بدون رابط')} · ${platformButtonAudienceLabel(b.audience_mode)} · ${b.is_enabled===false?'مخفي':'ظاهر'}</small>
+                            <small>
+                              <span class="platform-button-place-badge">${escapeHtml(platformButtonPlacementLabel(b.placement||'outside'))}</span>
+                              <span class="platform-button-device-badge">${escapeHtml(platformButtonDeviceLabel(b.device_mode||'both'))}</span>
+                            </small>
                         </div>
                     </div>
-                    <div class="platform-button-admin-actions">
+                    <div>
+                      <div class="platform-button-order">
+                        <button type="button" data-act="move-platform-button-up" data-platform-button-id="${escapeHtml(b.id||b.button_key)}" ${prev?'':'disabled'} title="تقديم الزر">↑</button>
+                        <button type="button" data-act="move-platform-button-down" data-platform-button-id="${escapeHtml(b.id||b.button_key)}" ${next?'':'disabled'} title="تأخير الزر">↓</button>
+                      </div>
+                      <div class="platform-button-admin-actions" style="margin-top:6px">
                         <button type="button" data-act="edit-platform-button" data-platform-button-id="${escapeHtml(b.id||b.button_key)}"><i class="fas fa-pen"></i> تعديل</button>
                         <button type="button" data-act="toggle-platform-button" data-platform-button-id="${escapeHtml(b.id||b.button_key)}">${b.is_enabled===false?'إظهار':'إخفاء'}</button>
                         ${!['whatsapp','telegram'].includes(b.button_key)?`<button type="button" class="danger" data-act="delete-platform-button" data-platform-button-id="${escapeHtml(b.id||b.button_key)}"><i class="fas fa-trash"></i> حذف</button>`:''}
+                      </div>
                     </div>
                 </div>`;
             }).join('');
             return `<div class="manager-page-editor platform-buttons-editor">
                 <div class="manager-page-editor-title"><i class="fas fa-link"></i> أزرار الروابط السريعة</div>
-                <div class="platform-button-tip">من هنا تقدر تضيف واتساب وتليجرام أو أي زر مخصص. تختار اللون والصورة والرابط، وتحدد إمتى يظهر ولمين. التعديل بيتطبق تلقائيًا على كل السمات لأنها بتستخدم نفس التطبيق الموحد.</div>
+                <div class="platform-button-tip">
+                    <strong>ترتيب الظهور:</strong> استخدم ↑ و ↓ لتحريك الزر قبل أو بعد باقي الأزرار — مش محتاج تكتب أرقام.
+                    وتقدر تحدد مكانه: جوه «ملك المنصة» أو بره أو الاثنين، وتحدد الأجهزة أيضًا.
+                </div>
                 <div class="manager-page-actions" style="margin-top:12px">
                     <button class="btn-save" type="button" data-act="add-platform-button"><i class="fas fa-plus"></i> إضافة زر جديد</button>
                 </div>
@@ -3369,10 +3460,8 @@ async function listWelcomeVideoObjects(path=''){
         }
 
         function renderPlatformButtonEditorModal(){
-            const m=state.modal;
-            const existing=m?.button||{};
+            const m=state.modal, existing=m?.button||{};
             const isBuiltin=['whatsapp','telegram'].includes(existing.button_key);
-            const title=existing.label||'رابط جديد';
             const previewImg=m?.imagePreview || platformButtonImageUrl(existing);
             const color=existing.color|| (existing.button_key==='whatsapp'?'#25D366':existing.button_key==='telegram'?'#229ED9':'#2563eb');
             return `<div class="overlay" data-act="close-modal-overlay">
@@ -3381,72 +3470,89 @@ async function listWelcomeVideoObjects(path=''){
                         <h3><i class="fas fa-link"></i> ${m?.isNew?'إضافة زر رابط':'تعديل زر الرابط'}</h3>
                         <button class="modal-close" data-act="close-modal">×</button>
                     </div>
+                    <div class="platform-button-tip">كل العناصر الأساسية اختيارية. تقدر تعمل زر بصورة فقط أو أيقونة فقط أو اسم فقط. الرابط اختياري؛ لو سبت الرابط فاضي الزر يظهر لكن مش هينقلك لمكان.</div>
                     <div class="platform-button-form-grid">
                         <div class="field">
-                            <label>عنوان الزر</label>
-                            <input id="platform-btn-label" type="text" maxlength="60" value="${escapeHtml(title)}" placeholder="واتساب / تليجرام / عنوان مخصص">
+                            <label>عنوان الزر <span class="access-help">(اختياري)</span></label>
+                            <input id="platform-btn-label" type="text" maxlength="60" value="${escapeHtml(existing.label||'')}" placeholder="مثال: واتساب">
                         </div>
                         <div class="field">
-                            <label>الرابط</label>
+                            <label>الرابط <span class="access-help">(اختياري)</span></label>
                             <input id="platform-btn-url" type="url" maxlength="1200" value="${escapeHtml(existing.url||'')}" placeholder="https://...">
                         </div>
                         <div class="field">
                             <label>لون الزر</label>
-                            <div class="platform-button-color-row">
-                                <input id="platform-btn-color" type="color" value="${escapeHtml(color)}">
-                                <span class="access-help">تقدر تختار أي لون.</span>
-                            </div>
+                            <div class="platform-button-color-row"><input id="platform-btn-color" type="color" value="${escapeHtml(color)}"><span class="access-help">أي لون تريده.</span></div>
                         </div>
                         <div class="field">
-                            <label>الأيقونة (اختياري)</label>
+                            <label>الأيقونة <span class="access-help">(اختياري)</span></label>
                             <input id="platform-btn-icon" type="text" maxlength="80" value="${escapeHtml(existing.icon||'')}" placeholder="fa-brands fa-whatsapp">
                         </div>
                     </div>
                     <div class="field">
-                        <label>الصورة (اختياري — PNG / JPG / WEBP / GIF وغيرها)</label>
+                        <label>الصورة <span class="access-help">(اختياري)</span></label>
                         <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
-                            <div class="platform-button-image-preview" id="platform-btn-image-preview">
-                                ${previewImg?`<img src="${escapeHtml(previewImg)}" alt="">`:'<i class="fas fa-image"></i>'}
-                            </div>
+                            <div class="platform-button-image-preview" id="platform-btn-image-preview">${previewImg?`<img src="${escapeHtml(previewImg)}" alt="">`:'<i class="fas fa-image"></i>'}</div>
                             <label class="upl">اختيار صورة من الجهاز<input type="file" id="platform-btn-image" accept="image/*"></label>
-                            <span class="access-help">أو حط رابط الصورة في الخانة التالية.</span>
+                            <span class="access-help">وتقدر تستخدم GIF متحرك، WebP وغيرها.</span>
                         </div>
                     </div>
                     <div class="field">
-                        <label>رابط الصورة</label>
+                        <label>رابط الصورة <span class="access-help">(اختياري)</span></label>
                         <input id="platform-btn-image-url" type="url" maxlength="2000" value="${escapeHtml(existing.image_url||'')}" placeholder="https://.../image.gif">
                     </div>
                     <div class="platform-button-form-grid">
                         <div class="field">
                             <label>يظهر لمن؟</label>
-                            <select id="platform-btn-audience">
+                            <select id="platform-btn-audience" data-platform-audience>
                                 <option value="all" ${existing.audience_mode==='all'||!existing.audience_mode?'selected':''}>الكل</option>
+                                <option value="selected" ${existing.audience_mode==='selected'?'selected':''}>أشخاص أختارهم</option>
                                 <option value="members" ${existing.audience_mode==='members'?'selected':''}>الأعضاء فقط</option>
                                 <option value="moderators" ${existing.audience_mode==='moderators'?'selected':''}>المشرفون فقط</option>
                                 <option value="admins" ${existing.audience_mode==='admins'?'selected':''}>الأدمن فقط</option>
                             </select>
+                            <div class="platform-button-selected-users ${existing.audience_mode==='selected'?'show':''}" id="platform-btn-selected-users-box">
+                                <select id="platform-btn-recipients" multiple size="7">
+                                    ${(state.users||[]).filter(u=>u.role!=='admin'&&u.role!=='super_admin').map(u=>{
+                                        const selected=(existing.recipient_ids||[]).map(String).includes(String(u.id));
+                                        return `<option value="${escapeHtml(u.id)}" ${selected?'selected':''}>${escapeHtml(userDisplayName(u))} — ${escapeHtml(u.email||'بدون بريد')}</option>`;
+                                    }).join('')}
+                                </select>
+                                <div class="platform-button-selected-note">اختَر واحدًا أو أكثر. الزر لن يظهر إلا للحسابات التي تحددها هنا.</div>
+                            </div>
                         </div>
                         <div class="field">
-                            <label>ترتيب الظهور</label>
-                            <input id="platform-btn-sort" type="number" min="0" max="999" value="${escapeHtml(existing.sort_order??10)}">
+                            <label>مكان الظهور</label>
+                            <select id="platform-btn-placement">
+                                <option value="outside" ${existing.placement==='outside'||!existing.placement?'selected':''}>بره «ملك المنصة»</option>
+                                <option value="manager" ${existing.placement==='manager'?'selected':''}>جوه «ملك المنصة»</option>
+                                <option value="both" ${existing.placement==='both'?'selected':''}>الاثنين</option>
+                            </select>
                         </div>
                         <div class="field">
-                            <label>يظهر من</label>
+                            <label>الأجهزة</label>
+                            <select id="platform-btn-device">
+                                <option value="both" ${existing.device_mode==='both'||!existing.device_mode?'selected':''}>الموبايل والكمبيوتر</option>
+                                <option value="mobile" ${existing.device_mode==='mobile'?'selected':''}>الموبايل فقط</option>
+                                <option value="desktop" ${existing.device_mode==='desktop'?'selected':''}>الكمبيوتر فقط</option>
+                            </select>
+                        </div>
+                        <div class="field">
+                            <label>ترتيب الزر</label>
+                            <div class="platform-button-tip" style="padding:8px 10px">ترتيب الزر بيتغير من قائمة الأزرار باستخدام ↑ و ↓.</div>
+                        </div>
+                        <div class="field">
+                            <label>يظهر من <span class="access-help">(اختياري)</span></label>
                             <input id="platform-btn-start" type="datetime-local" value="${escapeHtml(toDatetimeLocal(existing.start_at))}">
                         </div>
                         <div class="field">
-                            <label>يختفي بعد</label>
+                            <label>يختفي بعد <span class="access-help">(اختياري)</span></label>
                             <input id="platform-btn-end" type="datetime-local" value="${escapeHtml(toDatetimeLocal(existing.end_at))}">
                         </div>
                     </div>
-                    <div class="field">
-                        <label class="platform-button-switch"><input id="platform-btn-enabled" type="checkbox" ${existing.is_enabled===false?'':'checked'}> الزر ظاهر حاليًا</label>
-                    </div>
-                    <div class="platform-button-tip">${isBuiltin?'ده زر جاهز. تقدر تغيّر الاسم والرابط والصورة واللون والظهور، وهيفضل هو زر واتساب/تليجرام.':'ده زر مخصص تقدر تتحكم في كل تفاصيله.'}</div>
-                    <div class="modal-actions">
-                        <button class="btn-cancel" type="button" data-act="close-modal">إلغاء</button>
-                        <button class="btn-save" type="button" data-act="save-platform-button">حفظ الزر</button>
-                    </div>
+                    <div class="field"><label class="platform-button-switch"><input id="platform-btn-enabled" type="checkbox" ${existing.is_enabled===false?'':'checked'}> الزر ظاهر حاليًا</label></div>
+                    <div class="platform-button-tip">${isBuiltin?'زر واتساب/تليجرام الجاهز قابل لتغيير كل الإعدادات.':'زر مخصص تقدر تتحكم في كل إعداداته.'}</div>
+                    <div class="modal-actions"><button class="btn-cancel" type="button" data-act="close-modal">إلغاء</button><button class="btn-save" type="button" data-act="save-platform-button">حفظ الزر</button></div>
                 </div>
             </div>`;
         }
